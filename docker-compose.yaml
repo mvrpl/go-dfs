@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  data-node:
+    build: 
+      context: .\dfs-hive
+      dockerfile: dn.Dockerfile
+    container_name: data-node
+  name-node:
+    build: 
+      context: .\dfs-hive
+      dockerfile: nn.Dockerfile
+    container_name: name-node
+    depends_on:
+       - data-node
+    ports:
+      - "9000:9000"
+  hive-metastore:
+    image: apache/hive:4.0.0-alpha-2
+    container_name: hive-metastore
+    environment:
+      - SERVICE_NAME=metastore
+    ports:
+      - "9083:9083"
+  hive-server:
+    image: apache/hive:4.0.0-alpha-2
+    container_name: hive-server
+    environment:
+      - SERVICE_OPTS="-Dhive.metastore.uris=thrift://hive-metastore:9083 -Dhive.metastore.warehouse.dir=rpc://name-node:9000/"
+      - IS_RESUME=false
+      - SERVICE_NAME=hiveserver2
+    depends_on:
+       - name-node
+    ports:
+      - "10000:10000"
+      - "10002:10002"

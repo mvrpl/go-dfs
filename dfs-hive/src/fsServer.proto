@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+option go_package = "mvrpl.dev/dfsapi/fileSystemServer";
+
+service PrincipalNo {
+    rpc estaAtivo (RelatorioBloco) returns (Status) {};
+    rpc atribuirBlocos (ArquivoMetadata) returns (MapeamentoLocalizacaoBloco) {};
+    rpc obterLocalizacoesBloco (ArquivoMetadata) returns (MapeamentoLocalizacaoBloco) {};
+    rpc listaArquivos (ListaArquivosParam) returns (ListaArquivos) {};
+}
+
+message ListaArquivosParam {}
+
+service DadosNo {
+    rpc lerBloco (BlocoMetadata) returns (Bloco) {};
+    rpc escreverBloco (Bloco) returns (Status) {};
+}
+
+message Status {
+    bool success = 1;
+}
+
+message Bloco {
+  BlocoMetadata block_info = 1;
+    bytes content = 2;
+}
+
+message ArquivoMetadata {
+    string name = 1;
+    int64 size = 2;
+}
+
+message BlocoMetadata {
+    int32 index = 1;
+    int32 block_size = 2;
+    string file_name = 3;
+}
+
+message DadosNoInfo {
+    string ip = 1;
+    int32 port = 2;
+}
+
+message LocalizacaoBloco {
+  DadosNoInfo data_node_info = 1;
+    BlocoMetadata block_info = 2;
+}
+
+message MapeamentoLocalizacaoBloco {
+    repeated LocalizacaoBloco mapping = 1;
+    ArquivoMetadata file_info = 2;
+}
+
+message RelatorioBloco {
+  DadosNoInfo data_node_info = 1;
+    repeated BlocoMetadata blocks = 2;
+}
+
+message ListaArquivos {
+    repeated ArquivoMetadata files = 1;
+}
