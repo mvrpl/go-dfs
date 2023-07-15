@@ -23,6 +23,8 @@ const (
 	PrincipalNo_AtribuirBlocos_FullMethodName         = "/PrincipalNo/atribuirBlocos"
 	PrincipalNo_ObterLocalizacoesBloco_FullMethodName = "/PrincipalNo/obterLocalizacoesBloco"
 	PrincipalNo_ListaArquivos_FullMethodName          = "/PrincipalNo/listaArquivos"
+	PrincipalNo_AdcNoDados_FullMethodName             = "/PrincipalNo/adcNoDados"
+	PrincipalNo_AdcNovoArquivo_FullMethodName         = "/PrincipalNo/adcNovoArquivo"
 )
 
 // PrincipalNoClient is the client API for PrincipalNo service.
@@ -33,6 +35,8 @@ type PrincipalNoClient interface {
 	AtribuirBlocos(ctx context.Context, in *ArquivoMetadata, opts ...grpc.CallOption) (*MapeamentoLocalizacaoBloco, error)
 	ObterLocalizacoesBloco(ctx context.Context, in *ArquivoMetadata, opts ...grpc.CallOption) (*MapeamentoLocalizacaoBloco, error)
 	ListaArquivos(ctx context.Context, in *ListaArquivosParam, opts ...grpc.CallOption) (*ListaArquivos, error)
+	AdcNoDados(ctx context.Context, in *DadosNoInfo, opts ...grpc.CallOption) (*Status, error)
+	AdcNovoArquivo(ctx context.Context, in *Bloco, opts ...grpc.CallOption) (*Status, error)
 }
 
 type principalNoClient struct {
@@ -79,6 +83,24 @@ func (c *principalNoClient) ListaArquivos(ctx context.Context, in *ListaArquivos
 	return out, nil
 }
 
+func (c *principalNoClient) AdcNoDados(ctx context.Context, in *DadosNoInfo, opts ...grpc.CallOption) (*Status, error) {
+	out := new(Status)
+	err := c.cc.Invoke(ctx, PrincipalNo_AdcNoDados_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *principalNoClient) AdcNovoArquivo(ctx context.Context, in *Bloco, opts ...grpc.CallOption) (*Status, error) {
+	out := new(Status)
+	err := c.cc.Invoke(ctx, PrincipalNo_AdcNovoArquivo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PrincipalNoServer is the server API for PrincipalNo service.
 // All implementations must embed UnimplementedPrincipalNoServer
 // for forward compatibility
@@ -87,6 +109,8 @@ type PrincipalNoServer interface {
 	AtribuirBlocos(context.Context, *ArquivoMetadata) (*MapeamentoLocalizacaoBloco, error)
 	ObterLocalizacoesBloco(context.Context, *ArquivoMetadata) (*MapeamentoLocalizacaoBloco, error)
 	ListaArquivos(context.Context, *ListaArquivosParam) (*ListaArquivos, error)
+	AdcNoDados(context.Context, *DadosNoInfo) (*Status, error)
+	AdcNovoArquivo(context.Context, *Bloco) (*Status, error)
 	mustEmbedUnimplementedPrincipalNoServer()
 }
 
@@ -105,6 +129,12 @@ func (UnimplementedPrincipalNoServer) ObterLocalizacoesBloco(context.Context, *A
 }
 func (UnimplementedPrincipalNoServer) ListaArquivos(context.Context, *ListaArquivosParam) (*ListaArquivos, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListaArquivos not implemented")
+}
+func (UnimplementedPrincipalNoServer) AdcNoDados(context.Context, *DadosNoInfo) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdcNoDados not implemented")
+}
+func (UnimplementedPrincipalNoServer) AdcNovoArquivo(context.Context, *Bloco) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdcNovoArquivo not implemented")
 }
 func (UnimplementedPrincipalNoServer) mustEmbedUnimplementedPrincipalNoServer() {}
 
@@ -191,6 +221,42 @@ func _PrincipalNo_ListaArquivos_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PrincipalNo_AdcNoDados_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DadosNoInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrincipalNoServer).AdcNoDados(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrincipalNo_AdcNoDados_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrincipalNoServer).AdcNoDados(ctx, req.(*DadosNoInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PrincipalNo_AdcNovoArquivo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bloco)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrincipalNoServer).AdcNovoArquivo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrincipalNo_AdcNovoArquivo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrincipalNoServer).AdcNovoArquivo(ctx, req.(*Bloco))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PrincipalNo_ServiceDesc is the grpc.ServiceDesc for PrincipalNo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -214,14 +280,23 @@ var PrincipalNo_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "listaArquivos",
 			Handler:    _PrincipalNo_ListaArquivos_Handler,
 		},
+		{
+			MethodName: "adcNoDados",
+			Handler:    _PrincipalNo_AdcNoDados_Handler,
+		},
+		{
+			MethodName: "adcNovoArquivo",
+			Handler:    _PrincipalNo_AdcNovoArquivo_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "fsServer.proto",
 }
 
 const (
-	DadosNo_LerBloco_FullMethodName      = "/DadosNo/lerBloco"
-	DadosNo_EscreverBloco_FullMethodName = "/DadosNo/escreverBloco"
+	DadosNo_LerBloco_FullMethodName          = "/DadosNo/lerBloco"
+	DadosNo_EscreverBloco_FullMethodName     = "/DadosNo/escreverBloco"
+	DadosNo_ListaDataArquivos_FullMethodName = "/DadosNo/listaDataArquivos"
 )
 
 // DadosNoClient is the client API for DadosNo service.
@@ -230,6 +305,7 @@ const (
 type DadosNoClient interface {
 	LerBloco(ctx context.Context, in *BlocoMetadata, opts ...grpc.CallOption) (*Bloco, error)
 	EscreverBloco(ctx context.Context, in *Bloco, opts ...grpc.CallOption) (*Status, error)
+	ListaDataArquivos(ctx context.Context, in *ListaArquivosParam, opts ...grpc.CallOption) (*ListaArquivos, error)
 }
 
 type dadosNoClient struct {
@@ -258,12 +334,22 @@ func (c *dadosNoClient) EscreverBloco(ctx context.Context, in *Bloco, opts ...gr
 	return out, nil
 }
 
+func (c *dadosNoClient) ListaDataArquivos(ctx context.Context, in *ListaArquivosParam, opts ...grpc.CallOption) (*ListaArquivos, error) {
+	out := new(ListaArquivos)
+	err := c.cc.Invoke(ctx, DadosNo_ListaDataArquivos_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DadosNoServer is the server API for DadosNo service.
 // All implementations must embed UnimplementedDadosNoServer
 // for forward compatibility
 type DadosNoServer interface {
 	LerBloco(context.Context, *BlocoMetadata) (*Bloco, error)
 	EscreverBloco(context.Context, *Bloco) (*Status, error)
+	ListaDataArquivos(context.Context, *ListaArquivosParam) (*ListaArquivos, error)
 	mustEmbedUnimplementedDadosNoServer()
 }
 
@@ -276,6 +362,9 @@ func (UnimplementedDadosNoServer) LerBloco(context.Context, *BlocoMetadata) (*Bl
 }
 func (UnimplementedDadosNoServer) EscreverBloco(context.Context, *Bloco) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EscreverBloco not implemented")
+}
+func (UnimplementedDadosNoServer) ListaDataArquivos(context.Context, *ListaArquivosParam) (*ListaArquivos, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListaDataArquivos not implemented")
 }
 func (UnimplementedDadosNoServer) mustEmbedUnimplementedDadosNoServer() {}
 
@@ -326,6 +415,24 @@ func _DadosNo_EscreverBloco_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DadosNo_ListaDataArquivos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListaArquivosParam)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DadosNoServer).ListaDataArquivos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DadosNo_ListaDataArquivos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DadosNoServer).ListaDataArquivos(ctx, req.(*ListaArquivosParam))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DadosNo_ServiceDesc is the grpc.ServiceDesc for DadosNo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -340,6 +447,10 @@ var DadosNo_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "escreverBloco",
 			Handler:    _DadosNo_EscreverBloco_Handler,
+		},
+		{
+			MethodName: "listaDataArquivos",
+			Handler:    _DadosNo_ListaDataArquivos_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
