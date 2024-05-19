@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -24,6 +25,10 @@ type dfsGrpcNN struct {
 
 type dfsGrpcDN struct {
 	fileSystemServer.DadosNoServer
+}
+
+type IndcNumObj struct {
+	Indice int32 `json:"indice"`
 }
 
 func (m *dfsGrpcNN) AtribuirBlocos(ctx context.Context, request *fileSystemServer.ArquivoMetadata) (*fileSystemServer.MapeamentoLocalizacaoBloco, error) {
@@ -102,6 +107,30 @@ func (m *dfsGrpcNN) AdcNovoArquivo(ctx context.Context, request *fileSystemServe
 		return statusEscritaNo, nil
 	}
 
+	var indcNum int32 = int32(0)
+
+	indcNumArq, errLerIndc := os.ReadFile("/tmp/index.json")
+	if errLerIndc != nil {
+		indcNum = int32(0)
+	}
+
+	indcNumObj := &IndcNumObj{}
+
+	errJsonIndc := json.Unmarshal(indcNumArq, indcNumObj)
+	if errJsonIndc == nil {
+		indcNum = indcNumObj.Indice
+	}
+
+	indcNum += 1
+	indcNumObj.Indice = indcNum
+
+	indcNumObjJson, _ := json.Marshal(indcNumObj)
+
+	errEscritaMetaArq := os.WriteFile("/tmp/index.json", []byte(indcNumObjJson), 0755)
+	if errEscritaMetaArq != nil {
+		panic(errEscritaMetaArq)
+	}
+
 	servidorDadosRand := rand.Intn(len(servidoresDadosObj.ServidoresDados))
 
 	servidorDados := servidoresDadosObj.ServidoresDados[servidorDadosRand]
@@ -116,7 +145,8 @@ func (m *dfsGrpcNN) AdcNovoArquivo(ctx context.Context, request *fileSystemServe
 		client := fileSystemServer.NewDadosNoClient(conn)
 
 		var chamadaOpts []grpc.CallOption
-		statusEscritaNoDados, err := client.EscreverBloco(context.Background(), request, chamadaOpts...)
+		blocoParaNoDados := &fileSystemServer.Bloco{Content: request.Content, BlockInfo: &fileSystemServer.BlocoMetadata{Index: indcNum, BlockSize: 134217728, FileName: request.BlockInfo.FileName}}
+		statusEscritaNoDados, err := client.EscreverBloco(context.Background(), blocoParaNoDados, chamadaOpts...)
 		if err != nil {
 			panic(err)
 		}
@@ -144,6 +174,10 @@ func (m *dfsGrpcNN) EstaAtivo(ctx context.Context, request *fileSystemServer.Rel
 	}
 
 	var status bool = false
+
+	if (fileSystemServer.RelatorioBloco{}.DataNodeInfo) == (request.DataNodeInfo) {
+		return &fileSystemServer.Status{Success: status}, nil
+	}
 
 	for _, servidor := range servidoresDadosObj.ServidoresDados {
 		if servidor.Ip == request.DataNodeInfo.Ip && servidor.Port == request.DataNodeInfo.Port {
